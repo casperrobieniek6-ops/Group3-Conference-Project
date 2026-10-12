@@ -1,13 +1,21 @@
 /*
   Conference registration logic
-  This script handles attendee validation, local storage, editing,
+  This script handles attendee validation, browser storage, editing,
   deletion, and JSON export for the registration form.
-  It includes a safety guard so the page still loads cleanly on non-registration pages.
+
+  Beginner-friendly note:
+  - The browser stores the data using localStorage, so the list stays after refresh.
+  - The script reads and writes to the form, table, and status messages on the page.
+  - This file is only meant for the registration page, but it safely stops itself if a page
+    does not contain the required registration elements.
 */
 
 "use strict";
 
+// Store name for our attendee data in browser storage.
 const storageKey = "cyberSecSummitAttendees";
+
+// These constants point to the main HTML elements we need to work with.
 const form = document.getElementById("attendeeForm");
 const tableBody = document.getElementById("attendeeTable");
 const statusMessage = document.getElementById("statusMessage");
@@ -19,7 +27,7 @@ const downloadButton = document.getElementById("downloadButton");
 if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !downloadButton) {
     console.warn("Registration elements were not found. Skipping attendee initialization.");
 } else {
-    // Reference the form fields so validation and data updates can be managed together.
+    // Reference the input fields as a group so we can validate and update them together.
     const fields = {
         fullName: document.getElementById("fullName"),
         age: document.getElementById("age"),
@@ -28,9 +36,13 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         address: document.getElementById("address")
     };
 
+    // Store the current list of attendee records in memory.
     let attendees = [];
+
+    // This will hold the ID of the attendee currently being edited.
     let editingId = null;
 
+    // Show a message in the status area at the top of the form.
     function showMessage(message, type) {
         if (!statusMessage) {
             return;
@@ -41,6 +53,7 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
     }
 
     // Load any saved attendee data from browser storage when the page loads.
+    // If the saved data is missing or malformed, we keep the app working and show a warning.
     try {
         const savedData = localStorage.getItem(storageKey);
 
@@ -72,13 +85,15 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         );
     }
 
-    // Mark a specific form field as valid or invalid for Bootstrap validation styling.
+    // Add/remove Bootstrap validation styling to a field.
+    // A value of true means the field passes validation; false means the user needs to fix it.
     function setFieldValidity(field, valid) {
         field.classList.toggle("is-invalid", !valid);
         field.setAttribute("aria-invalid", String(!valid));
     }
 
     // Validate all required fields before saving a new attendee or updating an existing one.
+    // This helps prevent invalid data from entering the list and keeps the form user-friendly.
     function validateForm() {
         const name = fields.fullName.value.trim();
         const ageText = fields.age.value.trim();
@@ -129,7 +144,8 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         return true;
     }
 
-    // Save the attendee list to localStorage and update the visible table.
+    // Save the attendee list to browser storage and refresh the table on screen.
+    // This is the step that makes the list persist across page refreshes.
     function saveAttendees(nextAttendees) {
         try {
             localStorage.setItem(storageKey, JSON.stringify(nextAttendees));
@@ -146,7 +162,8 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         }
     }
 
-    // Clear the form and reset the edit state when the user finishes submitting or cancels.
+    // Reset the form so it returns to the default "add attendee" mode.
+    // This is used after a successful save or when the user cancels an edit.
     function resetForm() {
         form.reset();
         editingId = null;
@@ -160,7 +177,7 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         });
     }
 
-    // Fill the form with an attendee's data so the user can update it.
+    // Load an attendee into the form so the user can correct or update a saved record.
     function editAttendee(id) {
         const attendee = attendees.find(function (record) {
             return record.id === id;
@@ -185,7 +202,7 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         fields.fullName.focus();
     }
 
-    // Remove an attendee from the list after confirmation.
+    // Remove an attendee from the list after asking for confirmation.
     function deleteAttendee(id) {
         if (!window.confirm("Delete this attendee?")) {
             return;
@@ -204,7 +221,7 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         }
     }
 
-    // Draw the attendee table rows from the current in-memory list.
+    // Rebuild the table from the current attendee list so the page reflects saved data.
     function renderAttendees() {
         tableBody.replaceChildren();
 
@@ -255,7 +272,8 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         downloadButton.disabled = attendees.length === 0;
     }
 
-    // Handle form submission for both creating and updating attendee records.
+    // This runs when the user clicks the main submit button.
+    // It handles both creating a new attendee and updating an existing one.
     form.addEventListener("submit", function (event) {
         event.preventDefault();
 
@@ -292,13 +310,13 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         }
     });
 
-    // Cancel an in-progress edit without saving any changes.
+    // Cancel editing without saving the current changes.
     cancelButton.addEventListener("click", function () {
         resetForm();
         showMessage("Editing canceled.", "info");
     });
 
-    // Export all currently stored attendees as a JSON file.
+    // Download the attendee list as a JSON file for backup or sharing.
     downloadButton.addEventListener("click", function () {
         const json = JSON.stringify(attendees, null, 4);
         const file = new Blob([json], { type: "application/json" });
@@ -316,6 +334,6 @@ if (!form || !tableBody || !statusMessage || !submitButton || !cancelButton || !
         }, 1000);
     });
 
-    // Display the initial table state as soon as the page loads.
+    // Run once when the page loads to show the initial attendee list.
     renderAttendees();
 }

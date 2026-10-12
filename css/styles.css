@@ -2,6 +2,10 @@
   Shared site styling for the CyberSec Summit project.
   This file sets the visual system used by the home page and registration page,
   so both pages feel like part of the same conference website.
+
+  Beginner note:
+  - CSS rules are grouped by their purpose, such as layout, cards, buttons, and responsive design.
+  - When a rule is changed here, it affects all pages that load this stylesheet.
 */
 
 /* Base page styling */
