@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | CyberSec Summit 2026</title>
+
+    <!-- Bootstrap styling -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- Navigation matches the homepage and keeps the site consistent -->
+    <nav class="navbar navbar-dark">
+        <div class="container d-flex flex-wrap gap-2">
+            <a class="navbar-brand" href="index.html">
+                CyberSec Summit 2026
+            </a>
+
+            <div class="d-flex gap-3">
+                <a class="nav-link text-white" href="index.html">Home</a>
+                <a class="nav-link text-white" href="signup.html" aria-current="page">Register</a>
+                <a class="nav-link text-white" href="sessions.html">Sessions</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        <!-- Page intro: explains why this page exists and what the user should do here. -->
+        <header class="text-center mb-4">
+            <h1>Attendee Registration</h1>
+            <p class="text-secondary">
+                Join us for cybersecurity, networking, and emerging technologies.
+            </p>
+        </header>
+
+        <!-- Registration form card: captures the information needed to save an attendee. -->
+        <section class="card registration-card mb-5" aria-labelledby="formHeading">
+            <div class="card-body p-4">
+                <h2 id="formHeading" class="h4">Register an attendee</h2>
+                <p>All fields are required except phone number.</p>
+
+                <div id="statusMessage" class="mb-3" role="status" aria-live="polite"></div>
+
+                <!-- JavaScript handles validation and submission -->
+                <form id="attendeeForm" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input type="text" id="fullName" name="fullName" class="form-control" required maxlength="100" autocomplete="name" aria-describedby="nameError">
+                            <div id="nameError" class="invalid-feedback">
+                                Enter your full name, including first and last name.
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" id="age" name="age" class="form-control" required min="1" max="120" step="1" aria-describedby="ageError">
+                            <div id="ageError" class="invalid-feedback">
+                                Enter a whole-number age from 1 to 120.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" id="email" name="email" class="form-control" required maxlength="254" autocomplete="email" aria-describedby="emailError">
+                            <div id="emailError" class="invalid-feedback">
+                                Enter a valid email address.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Phone Number (optional)</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" maxlength="30" autocomplete="tel" aria-describedby="phoneError">
+                            <div id="phoneError" class="invalid-feedback">
+                                Use 7–15 digits with optional spaces, +, -, or parentheses.
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea id="address" name="address" class="form-control" rows="2" required maxlength="250" autocomplete="street-address" aria-describedby="addressError"></textarea>
+                            <div id="addressError" class="invalid-feedback">
+                                Enter your address.
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-flex flex-wrap gap-2">
+                            <button type="submit" id="submitButton" class="btn btn-primary">Register Attendee</button>
+                            <button type="button" id="cancelButton" class="btn btn-outline-secondary" hidden>Cancel Edit</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Saved attendees section: displays existing entries and provides actions like edit, delete, and export. -->
+        <section aria-labelledby="attendeeHeading">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                <h2 id="attendeeHeading" class="h4 mb-0">
+                    Registered Attendees (<span id="attendeeCount">0</span>)
+                </h2>
+                <button type="button" id="downloadButton" class="btn btn-success" disabled>Download JSON</button>
+            </div>
+
+            <p id="emptyMessage" class="text-secondary">No attendees registered yet.</p>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered bg-white">
+                    <caption>Attendees saved in this browser.</caption>
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Age</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Address</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendeeTable"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-white text-center py-3">
+        <p class="mb-0">CyberSec Summit 2026 | Group 3</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

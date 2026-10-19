@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Management | CyberSec Summit 2026</title>
+
+    <!-- Bootstrap is reused so the new page matches the rest of the conference site. -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container d-flex flex-wrap gap-2">
+            <a class="navbar-brand" href="index.html">CyberSec Summit 2026</a>
+
+            <div class="d-flex gap-3">
+                <a class="nav-link text-white" href="index.html">Home</a>
+                <a class="nav-link text-white" href="signup.html">Register</a>
+                <a class="nav-link text-white" href="sessions.html" aria-current="page">Sessions</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        <header class="text-center mb-4">
+            <p class="eyebrow">Conference Content Management</p>
+            <h1>Session Management</h1>
+            <p class="text-secondary">Add, update, and search conference sessions used by the event.</p>
+        </header>
+
+        <section class="card management-card mb-5" aria-labelledby="sessionFormHeading">
+            <div class="card-body p-4">
+                <h2 id="sessionFormHeading" class="h4 mb-3">Add a conference session</h2>
+                <div id="sessionStatus" class="alert alert-info" role="status" aria-live="polite">
+                    Loading sessions...
+                </div>
+
+                <form id="sessionForm" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="sessionId" class="form-label">Session ID</label>
+                            <input type="text" id="sessionId" name="sessionId" class="form-control" maxlength="20" aria-describedby="sessionIdError">
+                            <div id="sessionIdError" class="invalid-feedback">Enter a session ID.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="sessionDescription" class="form-label">Session Title / Description</label>
+                            <input type="text" id="sessionDescription" name="sessionDescription" class="form-control" maxlength="200" aria-describedby="sessionDescriptionError">
+                            <div id="sessionDescriptionError" class="invalid-feedback">Enter a session title or description.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="sessionCategory" class="form-label">Session Category / Track</label>
+                            <input type="text" id="sessionCategory" name="sessionCategory" class="form-control" maxlength="100" aria-describedby="sessionCategoryError">
+                            <div id="sessionCategoryError" class="invalid-feedback">Enter a category or track.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="sessionFormat" class="form-label">Session Format (Unit of Measure)</label>
+                            <input type="text" id="sessionFormat" name="sessionFormat" class="form-control" maxlength="50" aria-describedby="sessionFormatError">
+                            <div id="sessionFormatError" class="invalid-feedback">Enter a session format such as Workshop or Keynote.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="sessionPrice" class="form-label">Session Registration Price</label>
+                            <input type="number" id="sessionPrice" name="sessionPrice" class="form-control" min="0" step="0.01" aria-describedby="sessionPriceError">
+                            <div id="sessionPriceError" class="invalid-feedback">Enter a valid price. Zero is allowed for free sessions.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="sessionAdditionalInfo" class="form-label">Additional Info</label>
+                            <input type="text" id="sessionAdditionalInfo" name="sessionAdditionalInfo" class="form-control" maxlength="200" aria-describedby="sessionAdditionalInfoError">
+                            <div id="sessionAdditionalInfoError" class="invalid-feedback">Optional notes are not required.</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="submit" id="saveSessionButton" class="btn btn-primary">Add Session</button>
+                        <button type="button" id="cancelSessionEditButton" class="btn btn-outline-secondary" hidden>Cancel Edit</button>
+                        <button type="button" id="resetSessionFormButton" class="btn btn-outline-secondary">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="card search-card mb-4" aria-labelledby="searchHeading">
+            <div class="card-body p-4">
+                <h2 id="searchHeading" class="h5 mb-3">Search sessions</h2>
+                <label for="sessionSearch" class="form-label">Search by Session ID, title, or category</label>
+                <input type="search" id="sessionSearch" class="form-control" placeholder="Type to filter sessions...">
+            </div>
+        </section>
+
+        <section aria-labelledby="sessionListHeading">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                <h2 id="sessionListHeading" class="h4 mb-0">Conference Sessions (<span id="sessionCount">0</span>)</h2>
+                <button type="button" id="exportSessionsButton" class="btn btn-success">Export JSON</button>
+            </div>
+
+            <p id="sessionEmptyMessage" class="text-secondary">No sessions available yet.</p>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered bg-white session-table">
+                    <caption class="visually-hidden">Conference session list</caption>
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Session ID</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Format</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Additional Info</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="json-card mt-4">
+                <h3 class="h5">Current JSON Data</h3>
+                <pre id="sessionJsonView" class="json-view">{
+  "sessions": []
+}</pre>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-white text-center py-3">
+        <p class="mb-0">CyberSec Summit 2026 | Group 3</p>
+    </footer>
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/sessions.js"></script>
+</body>
+</html>

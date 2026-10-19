@@ -1,0 +1,277 @@
+/*
+  Shared site styling for the CyberSec Summit project.
+  This file sets the visual system used by the home page and registration page,
+  so both pages feel like part of the same conference website.
+
+  Beginner note:
+  - CSS rules are grouped by their purpose, such as layout, cards, buttons, and responsive design.
+  - When a rule is changed here, it affects all pages that load this stylesheet.
+*/
+
+/* Base page styling */
+body {
+    background: linear-gradient(180deg, #eff4f9 0%, #edf3f8 35%, #f7f9fb 100%);
+    font-family: Arial, sans-serif;
+    color: #1d2a39;
+    margin: 0;
+}
+
+/* Shared header/footer theme */
+.navbar {
+    background: linear-gradient(90deg, #112b45 0%, #16324f 100%);
+    box-shadow: 0 6px 18px rgba(17, 43, 69, 0.18);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+footer {
+    background: linear-gradient(90deg, #112b45 0%, #16324f 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.navbar-brand,
+.nav-link,
+.text-white {
+    color: #ffffff !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.nav-link {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.nav-link:hover {
+    opacity: 1;
+}
+
+/* Shared layout container */
+.container {
+    max-width: 1100px;
+}
+
+/* Card styling used for forms and feature panels */
+.card,
+.section-box,
+.info-panel,
+.feature-card,
+.stat-card {
+    border: none;
+    box-shadow: 0 10px 30px rgba(22, 50, 79, 0.08);
+    border-radius: 1rem;
+}
+
+.registration-card {
+    max-width: 800px;
+    margin: auto;
+}
+
+/* Homepage hero and feature section styling */
+.hero {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(233, 240, 249, 0.97) 100%);
+    padding: 2.75rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 62%;
+    width: 42%;
+    background: linear-gradient(180deg, rgba(126, 207, 232, 0.17), rgba(22, 50, 79, 0));
+    pointer-events: none;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #16324f;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero h1 {
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    font-weight: 800;
+    color: #16324f;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+}
+
+.lead {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    max-width: 630px;
+}
+
+.section-title {
+    color: #16324f;
+    font-weight: 700;
+}
+
+.info-panel {
+    background: linear-gradient(180deg, #16324f 0%, #102d4a 100%);
+    color: #ffffff;
+    padding: 1.75rem;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-panel::after {
+    content: "";
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    background: rgba(126, 207, 232, 0.12);
+    border-radius: 50%;
+    top: -30px;
+    right: -20px;
+}
+
+.feature-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0 0;
+}
+
+.feature-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.85rem;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.feature-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #7ecfe8;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.feature-card {
+    background-color: #ffffff;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(22, 50, 79, 0.12);
+}
+
+.feature-card .card-body {
+    padding: 1.6rem;
+}
+
+.feature-card h3 {
+    color: #16324f;
+    font-weight: 700;
+}
+
+.stat-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f9fd 100%);
+    padding: 2rem 1rem;
+    height: 100%;
+}
+
+.stat-number {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #16324f;
+}
+
+.stat-label {
+    color: #5b6c7e;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+/* Button styling for all pages */
+.btn {
+    border-radius: 999px;
+    padding: 0.75rem 1.4rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #16324f;
+    border-color: #16324f;
+    box-shadow: 0 6px 16px rgba(22, 50, 79, 0.22);
+}
+
+.btn-primary:hover {
+    background-color: #0f2540;
+    border-color: #0f2540;
+    transform: translateY(-1px);
+}
+
+.btn-outline-secondary {
+    border-color: #16324f;
+    color: #16324f;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #16324f;
+    border-color: #16324f;
+    color: #ffffff;
+}
+
+/* Registration table readability */
+.table td {
+    overflow-wrap: anywhere;
+}
+
+/* Session manager page styling */
+.management-card,
+.search-card,
+.json-card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(22, 50, 79, 0.08);
+}
+
+.json-view {
+    background: #f5f8fb;
+    border: 1px solid #dfe9f3;
+    border-radius: 0.75rem;
+    color: #16324f;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 0;
+}
+
+.session-table td {
+    vertical-align: middle;
+}
+
+/* Utilities for alignment and spacing */
+.section-box {
+    background-color: #ffffff;
+    padding: 2rem;
+}
+
+@media (max-width: 767.98px) {
+    .hero {
+        padding: 1.5rem;
+    }
+
+    .section-box {
+        padding: 1.25rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
