@@ -1,0 +1,36 @@
+{
+  "sessions": [
+    {
+      "productId": "SES-001",
+      "description": "Introduction to Cloud Security",
+      "category": "Cybersecurity",
+      "unitOfMeasure": "Workshop",
+      "price": 25.00,
+      "additionalInfo": "Room 204; 60 minutes"
+    },
+    {
+      "productId": "SES-002",
+      "description": "Threat Hunting in Real Time",
+      "category": "Threat Intelligence",
+      "unitOfMeasure": "Keynote",
+      "price": 45.00,
+      "additionalInfo": "Main Hall; 45 minutes"
+    },
+    {
+      "productId": "SES-003",
+      "description": "Zero Trust Architecture",
+      "category": "Network Security",
+      "unitOfMeasure": "Panel",
+      "price": 35.00,
+      "additionalInfo": "Room 118; 75 minutes"
+    },
+    {
+      "productId": "SES-004",
+      "description": "Secure DevOps Practices",
+      "category": "Software Security",
+      "unitOfMeasure": "Workshop",
+      "price": 0,
+      "additionalInfo": "Lab A; 90 minutes"
+    }
+  ]
+}

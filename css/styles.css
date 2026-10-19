@@ -231,6 +231,31 @@ footer {
     overflow-wrap: anywhere;
 }
 
+/* Session manager page styling */
+.management-card,
+.search-card,
+.json-card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(22, 50, 79, 0.08);
+}
+
+.json-view {
+    background: #f5f8fb;
+    border: 1px solid #dfe9f3;
+    border-radius: 0.75rem;
+    color: #16324f;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 0;
+}
+
+.session-table td {
+    vertical-align: middle;
+}
+
 /* Utilities for alignment and spacing */
 .section-box {
     background-color: #ffffff;
