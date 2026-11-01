@@ -2,10 +2,6 @@
   Shared site styling for the CyberSec Summit project.
   This file sets the visual system used by the home page and registration page,
   so both pages feel like part of the same conference website.
-
-  Beginner note:
-  - CSS rules are grouped by their purpose, such as layout, cards, buttons, and responsive design.
-  - When a rule is changed here, it affects all pages that load this stylesheet.
 */
 
 /* Base page styling */
@@ -262,6 +258,57 @@ footer {
     padding: 2rem;
 }
 
+.product-card,
+.cart-product-card {
+    border: 1px solid #dfeaf5;
+    border-radius: 1rem;
+    box-shadow: 0 10px 22px rgba(22, 50, 79, 0.05);
+}
+
+.product-category {
+    display: inline-block;
+    background: #eaf3ff;
+    color: #16324f;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.45rem 0.75rem;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+}
+
+.product-title {
+    color: #16324f;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.product-description {
+    color: #4f6177;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+}
+
+.product-price {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #16324f;
+}
+
+.cart-summary-box {
+    background: #f5f9fd;
+    border: 1px solid #dfeaf5;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    display: inline-block;
+    min-width: 220px;
+}
+
+.cart-quantity-input {
+    max-width: 90px;
+}
+
 @media (max-width: 767.98px) {
     .hero {
         padding: 1.5rem;
@@ -275,3 +322,4 @@ footer {
         width: 100%;
     }
 }
+

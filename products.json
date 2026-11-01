@@ -1,0 +1,46 @@
+{
+  "products": [
+    {
+      "id": "GEN-101",
+      "name": "General Admission Pass",
+      "description": "Full conference access for all keynotes, exhibits, and networking sessions.",
+      "category": "Passes",
+      "price": 149.0
+    },
+    {
+      "id": "STU-201",
+      "name": "Student Admission Pass",
+      "description": "Reduced-rate access for enrolled students with full event participation.",
+      "category": "Passes",
+      "price": 89.0
+    },
+    {
+      "id": "WRK-301",
+      "name": "Cloud Security Workshop",
+      "description": "A hands-on workshop covering secure cloud design and practical guardrails.",
+      "category": "Workshop",
+      "price": 79.0
+    },
+    {
+      "id": "NET-401",
+      "name": "Networking Event Ticket",
+      "description": "Join the evening networking event with speakers, sponsors, and peers.",
+      "category": "Events",
+      "price": 49.0
+    },
+    {
+      "id": "MER-501",
+      "name": "Summit Swag Kit",
+      "description": "A branded bundle featuring a conference notebook, lanyard, and stickers.",
+      "category": "Merchandise",
+      "price": 34.0
+    },
+    {
+      "id": "MAT-601",
+      "name": "Speaker Briefing Packet",
+      "description": "A detailed digital packet with the conference schedule and speaker notes.",
+      "category": "Materials",
+      "price": 19.0
+    }
+  ]
+}

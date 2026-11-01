@@ -12,13 +12,15 @@
 <body>
     <!-- Shared top navigation for all pages -->
     <nav class="navbar navbar-dark">
-        <div class="container d-flex flex-wrap gap-2">
+        <div class="container d-flex flex-wrap gap-2 justify-content-between">
             <a class="navbar-brand" href="index.html">CyberSec Summit 2026</a>
 
-            <div class="d-flex gap-3">
+            <div class="d-flex align-items-center gap-3">
                 <a class="nav-link text-white" href="index.html" aria-current="page">Home</a>
+                <a class="nav-link text-white" href="#storefront">Storefront</a>
                 <a class="nav-link text-white" href="signup.html">Register</a>
-                <a class="nav-link text-white" href="sessions.html">Sessions</a>
+                <a class="nav-link text-white" href="sessions.html">Store Manager</a>
+                <a class="nav-link text-white" href="cart.html">Cart <span id="cartBadge" class="badge rounded-pill bg-warning text-dark">0</span></a>
             </div>
         </div>
     </nav>
@@ -89,6 +91,27 @@
             </div>
         </section>
 
+        <section id="storefront" class="section-box mb-5 p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                <div>
+                    <p class="eyebrow mb-2">Conference Store</p>
+                    <h2 class="section-title mb-0">Shop the Summit</h2>
+                </div>
+                <a class="btn btn-outline-secondary" href="cart.html">View Cart</a>
+            </div>
+
+            <div class="row g-3 align-items-end mb-3">
+                <div class="col-lg-8">
+                    <label for="storeSearch" class="form-label">Search products</label>
+                    <input type="search" id="storeSearch" class="form-control" placeholder="Search by name, category, or description...">
+                </div>
+            </div>
+
+            <div id="storeFeedback" class="alert alert-info d-none" role="status" aria-live="polite"></div>
+            <div id="storeProductGrid" class="row g-4"></div>
+            <p id="storeEmptyMessage" class="text-secondary mt-3 mb-0 d-none">No conference products match your search.</p>
+        </section>
+
         <!-- Stats section: highlights attendance numbers and gives the event more credibility. -->
         <section class="section-box mb-5">
             <div class="row g-4 text-center">
@@ -129,5 +152,8 @@
     <footer class="text-white text-center py-3">
         <p class="mb-0">CyberSec Summit 2026 | Group 3</p>
     </footer>
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/storefront.js"></script>
 </body>
 </html>
