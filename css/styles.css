@@ -309,6 +309,63 @@ footer {
     max-width: 90px;
 }
 
+/* Finalization page styling */
+.finalization-hero {
+    background: linear-gradient(125deg, #16324f 0%, #245477 68%, #2f7894 100%);
+    border-radius: 1rem;
+    color: #ffffff;
+    padding: clamp(1.5rem, 5vw, 3rem);
+    box-shadow: 0 14px 32px rgba(22, 50, 79, 0.16);
+}
+
+.finalization-hero .eyebrow {
+    color: #bce7f3;
+}
+
+.finalization-hero .lead {
+    max-width: 720px;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.mock-banner {
+    border-radius: 0.8rem;
+}
+
+.finalization-card {
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(22, 50, 79, 0.08);
+}
+
+.session-option {
+    border: 1px solid #dfeaf5;
+    border-radius: 0.75rem;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.session-option:has(input:checked) {
+    border-color: #3a789a;
+    background-color: #f0f7fb;
+}
+
+.session-option .form-check-input {
+    flex-shrink: 0;
+    margin-top: 0.3rem;
+}
+
+.session-option-title {
+    color: #16324f;
+    font-weight: 700;
+}
+
+.registration-json {
+    max-height: 28rem;
+}
+
+.confirmation-card {
+    border-left: 0.35rem solid #198754;
+}
+
 @media (max-width: 767.98px) {
     .hero {
         padding: 1.5rem;
@@ -321,5 +378,12 @@ footer {
     .btn {
         width: 100%;
     }
-}
 
+    .finalization-hero {
+        padding: 1.5rem;
+    }
+
+    .finalization-hero h1 {
+        font-size: 2rem;
+    }
+}
