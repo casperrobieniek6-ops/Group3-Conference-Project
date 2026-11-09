@@ -1,13 +1,7 @@
 /*
-  Conference registration logic
+  Conference registration logic.
   This script handles attendee validation, browser storage, editing,
   deletion, and JSON export for the registration form.
-
-  Beginner-friendly note:
-  - The browser stores the data using localStorage, so the list stays after refresh.
-  - The script reads and writes to the form, table, and status messages on the page.
-  - This file is only meant for the registration page, but it safely stops itself if a page
-    does not contain the required registration elements.
 */
 
 "use strict";

@@ -1,14 +1,9 @@
-/*
-  Conference session manager
-  This page lets the project add, edit, search, and export conference sessions.
-  The app uses localStorage for persistence after refresh, and it loads the
-  starter data from sessions.json before the user starts editing.
-*/
-
-$(document).ready(function () {
+﻿$(document).ready(function () {
     "use strict";
 
-    const storageKey = "cyberSecSummitSessions";
+    const storageKey = "cyberSecSummitProducts";
+    const legacyStorageKey = "cyberSecSummitSessions";
+    const apiEndpoint = "https://example.com/api/products";
     const $statusMessage = $("#sessionStatus");
     const $form = $("#sessionForm");
     const $saveButton = $("#saveSessionButton");
@@ -20,55 +15,132 @@ $(document).ready(function () {
     const $emptyMessage = $("#sessionEmptyMessage");
     const $jsonView = $("#sessionJsonView");
     const $exportButton = $("#exportSessionsButton");
+    const $apiButton = $("#submitProductsToApiButton");
+    const $cartBadge = $("#cartBadge");
 
-    const fields = {
-        productId: $("#sessionId"),
-        description: $("#sessionDescription"),
-        category: $("#sessionCategory"),
-        unitOfMeasure: $("#sessionFormat"),
-        price: $("#sessionPrice"),
-        additionalInfo: $("#sessionAdditionalInfo")
-    };
-
-    const fallbackSessions = [
+    const defaultProducts = [
         {
-            productId: "SES-001",
-            description: "Introduction to Cloud Security",
-            category: "Cybersecurity",
-            unitOfMeasure: "Workshop",
-            price: 25.00,
-            additionalInfo: "Room 204; 60 minutes"
+            id: "GEN-101",
+            name: "General Admission Pass",
+            description: "Full conference access for all keynotes, exhibits, and networking sessions.",
+            category: "Passes",
+            price: 149.00
         },
         {
-            productId: "SES-002",
-            description: "Threat Hunting in Real Time",
-            category: "Threat Intelligence",
-            unitOfMeasure: "Keynote",
-            price: 45.00,
-            additionalInfo: "Main Hall; 45 minutes"
+            id: "STU-201",
+            name: "Student Admission Pass",
+            description: "Reduced-rate access for enrolled students with full event participation.",
+            category: "Passes",
+            price: 89.00
         },
         {
-            productId: "SES-003",
-            description: "Zero Trust Architecture",
-            category: "Network Security",
-            unitOfMeasure: "Panel",
-            price: 35.00,
-            additionalInfo: "Room 118; 75 minutes"
+            id: "WRK-301",
+            name: "Cloud Security Workshop",
+            description: "A hands-on workshop covering secure cloud design and practical guardrails.",
+            category: "Workshop",
+            price: 79.00
         },
         {
-            productId: "SES-004",
-            description: "Secure DevOps Practices",
-            category: "Software Security",
-            unitOfMeasure: "Workshop",
-            price: 0,
-            additionalInfo: "Lab A; 90 minutes"
+            id: "NET-401",
+            name: "Networking Event Ticket",
+            description: "Join the evening networking event with speakers, sponsors, and peers.",
+            category: "Events",
+            price: 49.00
+        },
+        {
+            id: "MER-501",
+            name: "Summit Swag Kit",
+            description: "A branded bundle featuring a conference notebook, lanyard, and stickers.",
+            category: "Merchandise",
+            price: 34.00
+        },
+        {
+            id: "MAT-601",
+            name: "Speaker Briefing Packet",
+            description: "A detailed digital packet with the conference schedule and speaker notes.",
+            category: "Materials",
+            price: 19.00
         }
     ];
 
-    let sessions = [];
-    let editingSessionId = null;
+    const fields = {
+        id: $("#sessionId"),
+        name: $("#sessionName"),
+        description: $("#sessionDescription"),
+        category: $("#sessionCategory"),
+        price: $("#sessionPrice")
+    };
 
-    // Show a visible alert message near the form so users get immediate feedback.
+    let products = [];
+    let editingProductId = null;
+
+    function normalizeProduct(product) {
+        if (!product || typeof product !== "object") {
+            return null;
+        }
+
+        const id = String(product.id || product.productId || "").trim();
+        const name = String(product.name || product.productName || product.description || "").trim();
+        const description = String(product.description || product.additionalInfo || product.summary || "").trim();
+        const category = String(product.category || product.track || "").trim();
+        const price = Number(product.price);
+
+        if (!id || !name || !category || !Number.isFinite(price) || price <= 0) {
+            return null;
+        }
+
+        return {
+            id: id,
+            name: name,
+            description: description || name,
+            category: category,
+            price: Number(price)
+        };
+    }
+
+    function readProductCollection() {
+        try {
+            const rawValue = localStorage.getItem(storageKey);
+            if (rawValue) {
+                const parsedValue = JSON.parse(rawValue);
+                const list = Array.isArray(parsedValue) ? parsedValue : (Array.isArray(parsedValue.products) ? parsedValue.products : []);
+                const normalized = list.map(normalizeProduct).filter(Boolean);
+                return normalized.length > 0 ? normalized : defaultProducts;
+            }
+
+            const legacyValue = localStorage.getItem(legacyStorageKey);
+            if (legacyValue) {
+                const parsedLegacy = JSON.parse(legacyValue);
+                const legacyList = Array.isArray(parsedLegacy) ? parsedLegacy : (Array.isArray(parsedLegacy.sessions) ? parsedLegacy.sessions : []);
+                const normalizedLegacy = legacyList.map(normalizeProduct).filter(Boolean);
+                if (normalizedLegacy.length > 0) {
+                    localStorage.setItem(storageKey, JSON.stringify(normalizedLegacy));
+                    return normalizedLegacy;
+                }
+            }
+        } catch (error) {
+            // Fall back to the bundled sample data when browser storage is invalid.
+        }
+
+        return defaultProducts;
+    }
+
+    function saveProducts(list) {
+        try {
+            products = list;
+            localStorage.setItem(storageKey, JSON.stringify(list));
+            renderProducts(products);
+            return true;
+        } catch (error) {
+            showStatus("Browser storage is unavailable, but the current product list is still visible in this session.", "warning");
+            return false;
+        }
+    }
+
+    function renderJsonViewer(list) {
+        $jsonView.text(JSON.stringify({ products: list }, null, 2));
+    }
+
     function showStatus(message, type) {
         $statusMessage
             .removeClass("alert-info alert-success alert-warning alert-danger")
@@ -76,37 +148,6 @@ $(document).ready(function () {
             .text(message);
     }
 
-    // Save the current session list to browser storage so it still exists after refresh.
-    function getStoredSessionList() {
-        try {
-            const rawData = localStorage.getItem(storageKey);
-            const parsedData = rawData ? JSON.parse(rawData) : [];
-            return Array.isArray(parsedData) ? parsedData : [];
-        } catch (error) {
-            return [];
-        }
-    }
-
-    function storeSessions(sessionList) {
-        sessions = sessionList;
-
-        try {
-            localStorage.setItem(storageKey, JSON.stringify(sessionList));
-        } catch (error) {
-            showStatus("Local storage is unavailable in this browser, but the current session list is still visible for this page session.", "warning");
-        }
-
-        renderSessions(sessions);
-        return true;
-    }
-
-    // Build a safe JSON string for the read-only viewer at the bottom of the page.
-    function renderJsonViewer(list) {
-        const currentList = Array.isArray(list) ? list : [];
-        $jsonView.text(JSON.stringify({ sessions: currentList }, null, 2));
-    }
-
-    // Add a Bootstrap validation style to a field and set a custom error message.
     function setFieldState(fieldName, isValid, message) {
         const field = fields[fieldName];
         const errorId = fieldName + "Error";
@@ -117,69 +158,72 @@ $(document).ready(function () {
         errorElement.text(message);
     }
 
-    // Reset all validation state for the form before a new submission attempt.
     function clearValidation() {
         Object.keys(fields).forEach(function (fieldName) {
             setFieldState(fieldName, true, "");
         });
     }
 
-    // Check whether the form is valid before saving or updating a session.
-    function validateSessionForm() {
+    function resetForm() {
+        $form.trigger("reset");
+        editingProductId = null;
+        $saveButton.text("Add Product");
+        $cancelButton.prop("hidden", true);
+        $("#sessionFormHeading").text("Add a conference product");
+        fields.id.removeProp("readonly");
+
+        Object.keys(fields).forEach(function (fieldName) {
+            const field = fields[fieldName];
+            field.removeClass("is-invalid");
+            field.removeAttr("aria-invalid");
+        });
+    }
+
+    function validateProductForm() {
         clearValidation();
 
-        const productId = $.trim(fields.productId.val());
+        const productId = $.trim(fields.id.val());
+        const productName = $.trim(fields.name.val());
         const description = $.trim(fields.description.val());
         const category = $.trim(fields.category.val());
-        const format = $.trim(fields.unitOfMeasure.val());
         const priceText = $.trim(fields.price.val());
         const priceValue = Number(priceText);
-        const additionalInfo = $.trim(fields.additionalInfo.val());
 
-        const duplicateId = productId !== "" && sessions.some(function (session) {
-            const sameId = session.productId && session.productId.toLowerCase() === productId.toLowerCase();
-
-            if (!editingSessionId) {
-                return sameId;
+        const duplicateId = productId !== "" && products.some(function (product) {
+            const isSameId = product.id && product.id.toLowerCase() === productId.toLowerCase();
+            if (!editingProductId) {
+                return isSameId;
             }
 
-            return sameId && session.productId.toLowerCase() !== editingSessionId.toLowerCase();
+            return isSameId && product.id.toLowerCase() !== editingProductId.toLowerCase();
         });
 
         const validationResults = {
-            productId: productId !== "" && !duplicateId,
-            description: description !== "",
-            category: category !== "",
-            unitOfMeasure: format !== "",
-            price: priceText !== "" && !Number.isNaN(priceValue) && priceValue >= 0
+            id: productId !== "" && !duplicateId,
+            name: productName.length >= 2,
+            description: description.length >= 5,
+            category: category.length >= 2,
+            price: priceText !== "" && Number.isFinite(priceValue) && priceValue > 0
         };
 
-        if (!validationResults.productId) {
-            setFieldState(
-                "productId",
-                false,
-                duplicateId ? "A session with this ID already exists. Use a unique ID." : "Enter a session ID."
-            );
+        if (!validationResults.id) {
+            setFieldState("id", false, duplicateId ? "A product with this ID already exists. Choose a unique value." : "Enter a product ID.");
+        }
+
+        if (!validationResults.name) {
+            setFieldState("name", false, "Enter a product name with useful wording.");
         }
 
         if (!validationResults.description) {
-            setFieldState("description", false, "Enter the session title or description.");
+            setFieldState("description", false, "Add a detailed description for the product.");
         }
 
         if (!validationResults.category) {
-            setFieldState("category", false, "Enter the session category or track.");
-        }
-
-        if (!validationResults.unitOfMeasure) {
-            setFieldState("unitOfMeasure", false, "Enter the session format such as Workshop or Keynote.");
+            setFieldState("category", false, "Enter a category such as Passes, Workshop, or Merchandise.");
         }
 
         if (!validationResults.price) {
-            setFieldState(
-                "price",
-                false,
-                "Enter a valid price. Zero is allowed for free sessions."
-            );
+            setFieldState("price", false, "Enter a valid price greater than zero.");
         }
 
         const firstInvalidKey = Object.keys(validationResults).find(function (key) {
@@ -195,59 +239,39 @@ $(document).ready(function () {
             return false;
         }
 
-        // Optional notes are saved as entered, but they are not required.
-        fields.additionalInfo.val(additionalInfo);
         return true;
     }
 
-    // Reset the form after a successful save or when an edit is canceled.
-    function resetForm() {
-        $form.trigger("reset");
-        editingSessionId = null;
-        $saveButton.text("Add Session");
-        $cancelButton.prop("hidden", true);
-        $("#sessionFormHeading").text("Add a conference session");
-        fields.productId.removeAttr("readonly");
-
-        Object.keys(fields).forEach(function (fieldName) {
-            const field = fields[fieldName];
-            field.removeClass("is-invalid");
-            field.removeAttr("aria-invalid");
-        });
-    }
-
-    // Show all current session rows in a table with buttons for editing.
-    function renderSessions(sessionList) {
-        const list = Array.isArray(sessionList) ? sessionList : [];
+    function renderProducts(list) {
+        const productList = Array.isArray(list) ? list : [];
         $tableBody.empty();
 
-        if (list.length === 0) {
+        if (productList.length === 0) {
             $count.text("0");
             $emptyMessage.removeClass("d-none").text(
-                $.trim($searchField.val()) !== "" ? "No matching sessions found." : "No sessions available yet. Add the first conference session."
+                $.trim($searchField.val()) !== "" ? "No matching products found." : "No products available yet. Add the first conference product."
             );
             renderJsonViewer([]);
             return;
         }
 
         $emptyMessage.addClass("d-none");
-        $count.text(list.length);
+        $count.text(productList.length);
 
-        list.forEach(function (session) {
+        productList.forEach(function (product) {
             const row = $("<tr>");
 
-            row.append($("<td>").text(session.productId || ""));
-            row.append($("<td>").text(session.description || ""));
-            row.append($("<td>").text(session.category || ""));
-            row.append($("<td>").text(session.unitOfMeasure || ""));
-            row.append($("<td>").text(Number(session.price || 0).toFixed(2)));
-            row.append($("<td>").text(session.additionalInfo || "-"));
+            row.append($("<td>").text(product.id || ""));
+            row.append($("<td>").text(product.name || ""));
+            row.append($("<td>").text(product.description || ""));
+            row.append($("<td>").text(product.category || ""));
+            row.append($("<td>").text("$" + Number(product.price || 0).toFixed(2)));
 
             const actionsCell = $("<td>");
             const editButton = $("<button type='button' class='btn btn-sm btn-outline-primary me-2'>Edit</button>");
 
             editButton.on("click", function () {
-                editSession(session.productId);
+                editProduct(product.id);
             });
 
             actionsCell.append(editButton);
@@ -255,170 +279,88 @@ $(document).ready(function () {
             $tableBody.append(row);
         });
 
-        renderJsonViewer(list);
+        renderJsonViewer(productList);
     }
 
-    // Load a session into the form so the user can edit it without creating a duplicate.
-    function editSession(productId) {
-        const selectedSession = sessions.find(function (session) {
-            return session.productId === productId;
+    function editProduct(productId) {
+        const selectedProduct = products.find(function (product) {
+            return product.id === productId;
         });
 
-        if (!selectedSession) {
+        if (!selectedProduct) {
             return;
         }
 
         resetForm();
-        editingSessionId = selectedSession.productId;
-        $saveButton.text("Update Session");
+        editingProductId = selectedProduct.id;
+        $saveButton.text("Update Product");
         $cancelButton.prop("hidden", false);
-        $("#sessionFormHeading").text("Edit session");
-        fields.productId.val(selectedSession.productId).prop("readonly", true);
-        fields.description.val(selectedSession.description);
-        fields.category.val(selectedSession.category);
-        fields.unitOfMeasure.val(selectedSession.unitOfMeasure);
-        fields.price.val(Number(selectedSession.price).toFixed(2));
-        fields.additionalInfo.val(selectedSession.additionalInfo || "");
-        showStatus("Edit the selected session and save your changes.", "info");
-        fields.description.focus();
+        $("#sessionFormHeading").text("Edit product");
+
+        fields.id.val(selectedProduct.id).prop("readonly", true);
+        fields.name.val(selectedProduct.name);
+        fields.description.val(selectedProduct.description || "");
+        fields.category.val(selectedProduct.category);
+        fields.price.val(Number(selectedProduct.price).toFixed(2));
+
+        showStatus("Edit the selected product and save your changes.", "info");
+        fields.name.focus();
     }
 
-    // Search is case-insensitive and checks ID, description, and category.
     function handleSearch() {
         const searchTerm = $.trim($searchField.val()).toLowerCase();
 
         if (searchTerm === "") {
-            renderSessions(sessions);
+            renderProducts(products);
             return;
         }
 
-        const filteredList = sessions.filter(function (session) {
-            const text = [
-                session.productId,
-                session.description,
-                session.category
-            ].join(" ").toLowerCase();
-
-            return text.includes(searchTerm);
+        const filteredProducts = products.filter(function (product) {
+            const searchableText = [product.id, product.name, product.description, product.category].join(" ").toLowerCase();
+            return searchableText.includes(searchTerm);
         });
 
-        renderSessions(filteredList);
+        renderProducts(filteredProducts);
     }
 
-    // Load the starting JSON data from the project file. If there is saved localStorage data,
-    // that value should win so changes survive a browser refresh.
-    function loadInitialData() {
-        const savedSessions = localStorage.getItem(storageKey);
+    function updateCartBadge() {
+        const rawCart = localStorage.getItem("cyberSecSummitCart");
+        let total = 0;
 
-        if (savedSessions) {
+        if (rawCart) {
             try {
-                const parsedSaved = JSON.parse(savedSessions);
-
-                if (Array.isArray(parsedSaved)) {
-                    sessions = parsedSaved;
-                    renderSessions(sessions);
-                    showStatus("Saved sessions loaded from this browser.", "info");
-                    return;
+                const cart = JSON.parse(rawCart);
+                if (cart && typeof cart === "object") {
+                    total = Object.keys(cart).reduce(function (sum, key) {
+                        return sum + (Number(cart[key].quantity) || 0);
+                    }, 0);
                 }
             } catch (error) {
-                showStatus("Saved session data was unreadable, so the default file was loaded instead.", "warning");
+                total = 0;
             }
         }
 
-        $.getJSON("sessions.json")
-            .done(function (data) {
-                if (!data || !Array.isArray(data.sessions)) {
-                    throw new Error("The JSON file does not contain a valid sessions array.");
-                }
-
-                sessions = data.sessions;
-
-                try {
-                    localStorage.setItem(storageKey, JSON.stringify(sessions));
-                } catch (error) {
-                    showStatus("Session data loaded successfully, but browser storage is unavailable on this page.", "warning");
-                }
-
-                renderSessions(sessions);
-                showStatus("Sample sessions loaded successfully.", "success");
-            })
-            .fail(function () {
-                sessions = fallbackSessions;
-                renderSessions(sessions);
-                showStatus("Sample session data is available locally because the JSON file could not be loaded in this browser.", "warning");
-            });
+        if ($cartBadge.length) {
+            $cartBadge.text(total);
+        }
     }
 
-    // Save the form when the user submits it. This covers both adding and updating.
-    $form.on("submit", function (event) {
-        event.preventDefault();
+    function loadInitialData() {
+        const savedProducts = readProductCollection();
+        products = savedProducts;
+        renderProducts(products);
+        updateCartBadge();
+        showStatus("Conference product data loaded successfully.", "success");
+    }
 
-        if (!validateSessionForm()) {
-            return;
-        }
-
-        const sessionObject = {
-            productId: $.trim(fields.productId.val()),
-            description: $.trim(fields.description.val()),
-            category: $.trim(fields.category.val()),
-            unitOfMeasure: $.trim(fields.unitOfMeasure.val()),
-            price: Number($.trim(fields.price.val())),
-            additionalInfo: $.trim(fields.additionalInfo.val())
-        };
-
-        const isEditing = editingSessionId !== null;
-        const duplicateIdOnSave = sessions.some(function (session) {
-            const sameId = session.productId && session.productId.toLowerCase() === sessionObject.productId.toLowerCase();
-
-            if (!isEditing) {
-                return sameId;
-            }
-
-            return sameId && session.productId.toLowerCase() !== editingSessionId.toLowerCase();
-        });
-
-        if (duplicateIdOnSave) {
-            setFieldState("productId", false, "A session with this ID already exists. Use a unique ID.");
-            fields.productId.focus();
-            showStatus("Please correct the highlighted fields before saving.", "danger");
-            return;
-        }
-
-        if (isEditing) {
-            sessions = sessions.map(function (session) {
-                return session.productId === editingSessionId ? sessionObject : session;
-            });
-            showStatus("Session updated successfully.", "success");
-        } else {
-            sessions.push(sessionObject);
-            showStatus("Session added successfully.", "success");
-        }
-
-        if (storeSessions(sessions)) {
-            resetForm();
-        }
-    });
-
-    $cancelButton.on("click", function () {
-        resetForm();
-        showStatus("Edit canceled. The form is ready for a new session.", "info");
-    });
-
-    $resetButton.on("click", function () {
-        resetForm();
-        showStatus("Form cleared. Ready for a new session.", "info");
-    });
-
-    $searchField.on("input", handleSearch);
-
-    $exportButton.on("click", function () {
-        const data = JSON.stringify({ sessions: sessions }, null, 2);
+    function downloadProducts() {
+        const data = JSON.stringify({ products: products }, null, 2);
         const blob = new Blob([data], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
 
         link.href = url;
-        link.download = "sessions.json";
+        link.download = "products.json";
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -427,7 +369,77 @@ $(document).ready(function () {
             URL.revokeObjectURL(url);
         }, 1000);
 
-        showStatus("Current session data downloaded as sessions.json.", "success");
+        showStatus("Current product data downloaded as products.json.", "success");
+    }
+
+    function submitProductsToApi() {
+        if (!products.length) {
+            showStatus("Add a product before sending the collection to the API.", "warning");
+            return;
+        }
+
+        // Configure the future API endpoint here before enabling live submissions.
+        $.ajax({
+            url: apiEndpoint,
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ products: products }),
+            success: function () {
+                showStatus("The product collection was sent to the configured API endpoint.", "success");
+            },
+            error: function () {
+                showStatus("The API request failed. Update the endpoint in js/sessions.js to a real REST service.", "danger");
+            }
+        });
+    }
+
+    $form.on("submit", function (event) {
+        event.preventDefault();
+
+        if (!validateProductForm()) {
+            return;
+        }
+
+        const productObject = {
+            id: $.trim(fields.id.val()),
+            name: $.trim(fields.name.val()),
+            description: $.trim(fields.description.val()),
+            category: $.trim(fields.category.val()),
+            price: Number($.trim(fields.price.val()))
+        };
+
+        if (editingProductId) {
+            products = products.map(function (product) {
+                return product.id === editingProductId ? productObject : product;
+            });
+            showStatus("Product updated successfully.", "success");
+        } else {
+            products.push(productObject);
+            showStatus("Product added successfully.", "success");
+        }
+
+        saveProducts(products);
+        resetForm();
+    });
+
+    $cancelButton.on("click", function () {
+        resetForm();
+        showStatus("Edit canceled. The form is ready for a new product.", "info");
+    });
+
+    $resetButton.on("click", function () {
+        resetForm();
+        showStatus("Form cleared. Ready for a new product.", "info");
+    });
+
+    $searchField.on("input", handleSearch);
+
+    $exportButton.on("click", function () {
+        downloadProducts();
+    });
+
+    $apiButton.on("click", function () {
+        submitProductsToApi();
     });
 
     loadInitialData();
