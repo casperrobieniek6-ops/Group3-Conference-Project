@@ -366,6 +366,52 @@ footer {
     border-left: 0.35rem solid #198754;
 }
 
+.billing-card {
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(22, 50, 79, 0.08);
+}
+
+.proposal-card {
+    background: #ffffff;
+    border: 1px solid #dfeaf5;
+    border-radius: 0.85rem;
+    box-shadow: 0 6px 18px rgba(22, 50, 79, 0.05);
+}
+
+.return-product {
+    height: 100%;
+    background: #ffffff;
+    border: 1px solid #dfeaf5;
+    border-radius: 0.85rem;
+    color: #1d2a39;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.return-product:hover,
+.return-product.selected {
+    background: #f0f7fb;
+    border-color: #3a789a;
+}
+
+.product-thumbnail {
+    width: 5rem;
+    height: 3.5rem;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+}
+
+.selected-product {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem;
+    background: #f5f9fd;
+    border: 1px solid #dfeaf5;
+    border-radius: 0.75rem;
+}
+
 @media (max-width: 767.98px) {
     .hero {
         padding: 1.5rem;

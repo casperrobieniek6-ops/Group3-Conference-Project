@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 110" role="img" aria-labelledby="title">
+  <title id="title">CyberSec Summit product</title>
+  <rect width="160" height="110" rx="14" fill="#eaf3ff"/>
+  <path d="M80 20 112 32v22c0 21-14 34-32 41-18-7-32-20-32-41V32z" fill="#16324f"/>
+  <path d="m67 53 9 9 18-20" fill="none" stroke="#7ecfe8" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+</svg>
