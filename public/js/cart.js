@@ -1,54 +1,6 @@
 $(document).ready(function () {
     "use strict";
 
-    const productStorageKey = "cyberSecSummitProducts";
-    const cartStorageKey = "cyberSecSummitCart";
-
-    const defaultProducts = [
-        {
-            id: "GEN-101",
-            name: "General Admission Pass",
-            description: "Full conference access for all keynotes, exhibits, and networking sessions.",
-            category: "Passes",
-            price: 149.00
-        },
-        {
-            id: "STU-201",
-            name: "Student Admission Pass",
-            description: "Reduced-rate access for enrolled students with full event participation.",
-            category: "Passes",
-            price: 89.00
-        },
-        {
-            id: "WRK-301",
-            name: "Cloud Security Workshop",
-            description: "A hands-on workshop covering secure cloud design and practical guardrails.",
-            category: "Workshop",
-            price: 79.00
-        },
-        {
-            id: "NET-401",
-            name: "Networking Event Ticket",
-            description: "Join the evening networking event with speakers, sponsors, and peers.",
-            category: "Events",
-            price: 49.00
-        },
-        {
-            id: "MER-501",
-            name: "Summit Swag Kit",
-            description: "A branded bundle featuring a conference notebook, lanyard, and stickers.",
-            category: "Merchandise",
-            price: 34.00
-        },
-        {
-            id: "MAT-601",
-            name: "Speaker Briefing Packet",
-            description: "A detailed digital packet with the conference schedule and speaker notes.",
-            category: "Materials",
-            price: 19.00
-        }
-    ];
-
     const $cartTableBody = $("#cartTableBody");
     const $cartEmptyMessage = $("#cartEmptyMessage");
     const $itemCount = $("#cartItemCount");
@@ -57,42 +9,26 @@ $(document).ready(function () {
     const $cartProductResults = $("#cartProductResults");
     const $cartProductEmpty = $("#cartProductEmpty");
     const $cartBadge = $("#cartBadge");
+    const $cartStatus = $("#cartStatusMessage");
+    let products = [];
 
     function readProducts() {
-        try {
-            const rawValue = localStorage.getItem(productStorageKey);
-            if (!rawValue) {
-                return defaultProducts;
-            }
-
-            const parsedValue = JSON.parse(rawValue);
-            if (!Array.isArray(parsedValue) || parsedValue.length === 0) {
-                return defaultProducts;
-            }
-
-            return parsedValue;
-        } catch (error) {
-            return defaultProducts;
-        }
+        return products;
     }
 
     function readCart() {
-        try {
-            const rawValue = localStorage.getItem(cartStorageKey);
-            if (!rawValue) {
-                return {};
-            }
-
-            const parsedValue = JSON.parse(rawValue);
-            return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
-        } catch (error) {
-            return {};
-        }
+        return ConferenceCartApi.readLocal();
     }
 
     function saveCart(cart) {
-        localStorage.setItem(cartStorageKey, JSON.stringify(cart));
         updateCartBadge();
+        ConferenceCartApi.save(cart).done(function () {
+            $cartStatus.removeClass("alert-danger").addClass("alert-success")
+                .text("Cart saved to the database.");
+        }).fail(function () {
+            $cartStatus.removeClass("alert-success").addClass("alert-danger")
+                .text("The cart could not be saved to the database. Please try again.");
+        });
     }
 
     function updateCartBadge() {
@@ -189,22 +125,16 @@ $(document).ready(function () {
 
         filteredProducts.forEach(function (product) {
             const isAlreadyInCart = Boolean(cart[product.id]);
-            const productCard = $(
-                '<div class="col-md-6 col-xl-4">' +
-                '  <div class="card cart-product-card h-100">' +
-                '    <div class="card-body d-flex flex-column">' +
-                '      <span class="product-category">' + product.category + '</span>' +
-                '      <h3 class="h5 product-title">' + product.name + '</h3>' +
-                '      <p class="product-description">' + product.description + '</p>' +
-                '      <div class="mt-auto d-flex justify-content-between align-items-center">' +
-                '        <span class="product-price">$' + Number(product.price).toFixed(2) + '</span>' +
-                '        <button type="button" class="btn btn-primary btn-sm add-product-button" data-product-id="' + product.id + '" ' + (isAlreadyInCart ? "disabled" : "") + '>' + (isAlreadyInCart ? "Added" : "Add") + '</button>' +
-                '      </div>' +
-                '    </div>' +
-                '  </div>' +
-                '</div>'
-            );
-
+            const productCard = $('<div class="col-md-6 col-xl-4"><div class="card cart-product-card h-100"><div class="card-body d-flex flex-column"></div></div></div>');
+            const body = productCard.find(".card-body");
+            body.append($("<span>").addClass("product-category").text(product.category));
+            body.append($("<h3>").addClass("h5 product-title").text(product.name));
+            body.append($("<p>").addClass("product-description").text(product.description));
+            const footer = $("<div>").addClass("mt-auto d-flex justify-content-between align-items-center");
+            footer.append($("<span>").addClass("product-price").text("$" + Number(product.price).toFixed(2)));
+            footer.append($("<button type='button'>").addClass("btn btn-primary btn-sm add-product-button")
+                .prop("disabled", isAlreadyInCart).text(isAlreadyInCart ? "Added" : "Add"));
+            body.append(footer);
             productCard.find(".add-product-button").on("click", function () {
                 addProductToCart(product.id);
             });
@@ -252,15 +182,13 @@ $(document).ready(function () {
             totalQuantity += entry.quantity;
             grandTotal += entry.subtotal;
 
-            const row = $(
-                '<tr>' +
-                '  <td>' + entry.product.name + '</td>' +
-                '  <td>$' + Number(entry.product.price).toFixed(2) + '</td>' +
-                '  <td><input type="number" min="1" step="1" value="' + entry.quantity + '" class="form-control cart-quantity-input" data-product-id="' + entry.product.id + '" aria-label="Quantity for ' + entry.product.name + '"></td>' +
-                '  <td>$' + entry.subtotal.toFixed(2) + '</td>' +
-                '  <td><button type="button" class="btn btn-outline-danger btn-sm remove-cart-item" data-product-id="' + entry.product.id + '">Remove</button></td>' +
-                '</tr>'
-            );
+            const row = $("<tr>");
+            row.append($("<td>").text(entry.product.name));
+            row.append($("<td>").text("$" + Number(entry.product.price).toFixed(2)));
+            row.append($("<td>").append($("<input type='number' min='1' step='1'>").addClass("form-control cart-quantity-input")
+                .val(entry.quantity).attr("aria-label", "Quantity for " + entry.product.name)));
+            row.append($("<td>").text("$" + entry.subtotal.toFixed(2)));
+            row.append($("<td>").append($("<button type='button'>").addClass("btn btn-outline-danger btn-sm remove-cart-item").text("Remove")));
 
             row.find(".remove-cart-item").on("click", function () {
                 removeCartItem(entry.product.id);
@@ -277,9 +205,46 @@ $(document).ready(function () {
         $cartTotal.text("$" + grandTotal.toFixed(2));
     }
 
-    updateCartBadge();
-    renderMatchingProducts();
-    renderCart();
-
     $cartProductSearch.on("input", renderMatchingProducts);
+    updateCartBadge();
+    $.getJSON("/api/products").done(function (result) {
+        if (!result || !Array.isArray(result.products)) {
+            $cartProductEmpty.removeClass("d-none").text("The product catalog response is invalid.");
+            return;
+        }
+        products = result.products;
+        const localCart = readCart();
+        ConferenceCartApi.load().done(function (cartResult) {
+            ConferenceCartApi.cache(cartResult.cart.items);
+            updateCartBadge();
+            $cartStatus.removeClass("alert-danger").removeClass("alert-success")
+                .addClass("alert-info").text("Cart loaded from the database.");
+            renderMatchingProducts();
+            renderCart();
+        }).fail(function (response) {
+            if (response.status === 404 && Object.keys(localCart).length > 0) {
+                ConferenceCartApi.save(localCart).done(function () {
+                    $cartStatus.removeClass("alert-danger").addClass("alert-success")
+                        .text("Existing cart items were saved to the database.");
+                }).fail(function () {
+                    $cartStatus.removeClass("alert-success").addClass("alert-danger")
+                        .text("Existing cart items could not be migrated to the database.");
+                }).always(function () {
+                    updateCartBadge();
+                    renderMatchingProducts();
+                    renderCart();
+                });
+                return;
+            }
+            if (response.status !== 404) {
+                $cartStatus.removeClass("alert-success").addClass("alert-danger")
+                    .text("The saved cart could not be loaded from the database.");
+            }
+            renderMatchingProducts();
+            renderCart();
+        });
+    }).fail(function () {
+        $cartProductEmpty.removeClass("d-none").text("The product catalog could not be loaded. Check the server and database.");
+        renderCart();
+    });
 });

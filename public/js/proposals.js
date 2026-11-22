@@ -6,7 +6,7 @@
 
     async function request(url, options) {
         const response = await fetch(url, options);
-        const payload = await response.json();
+        const payload = response.status === 204 ? {} : await response.json();
         if (!response.ok) {
             throw new Error(payload.error || "The server could not complete the request.");
         }
@@ -76,6 +76,21 @@
             }
         }
 
+        async function removeProposal(id) {
+            setBusy(true);
+            setMessage("");
+            setError("");
+            try {
+                await request("/api/proposals/" + encodeURIComponent(id), { method: "DELETE" });
+                setProposals((current) => current.filter((proposal) => proposal.id !== id));
+                setMessage("Proposal deleted.");
+            } catch (deleteError) {
+                setError(deleteError.message);
+            } finally {
+                setBusy(false);
+            }
+        }
+
         const visibleProposals = proposals.filter((proposal) => filter === "all" || proposal.status === filter);
         return h("div", null,
             h("h2", { className: "h4 mb-3" }, "Submit a session"),
@@ -136,9 +151,10 @@
                             ),
                             h("p", { className: "small text-secondary mb-2" }, proposal.category + " · " + proposal.format + " · " + proposal.speaker + " · " + proposal.email),
                             h("p", { className: "mb-3" }, proposal.abstract),
-                            proposal.status === "pending" && h("div", { className: "d-flex flex-wrap gap-2" },
-                                h("button", { className: "btn btn-success", type: "button", disabled: busy, onClick: () => decide(proposal.id, "approved") }, "Approve"),
-                                h("button", { className: "btn btn-outline-danger", type: "button", disabled: busy, onClick: () => decide(proposal.id, "rejected") }, "Reject")
+                            h("div", { className: "d-flex flex-wrap gap-2" },
+                                proposal.status === "pending" && h("button", { className: "btn btn-success", type: "button", disabled: busy, onClick: () => decide(proposal.id, "approved") }, "Approve"),
+                                proposal.status === "pending" && h("button", { className: "btn btn-outline-danger", type: "button", disabled: busy, onClick: () => decide(proposal.id, "rejected") }, "Reject"),
+                                h("button", { className: "btn btn-outline-secondary", type: "button", disabled: busy, onClick: () => removeProposal(proposal.id) }, "Delete")
                             )
                         )
                     )

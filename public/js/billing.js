@@ -11,13 +11,13 @@
         $scope.card = { number: "", expiry: "", code: "" };
         $scope.shipping = "standard";
         $scope.cartItems = [];
+        $scope.cartLoading = true;
         $scope.submitting = false;
         $scope.error = "";
         $scope.confirmation = "";
 
-        try {
-            const cart = JSON.parse(localStorage.getItem("cyberSecSummitCart") || "{}");
-            $scope.cartItems = Object.keys(cart).map(function (id) {
+        function localCartItems(cart) {
+            return Object.keys(cart).map(function (id) {
                 const item = cart[id];
                 return {
                     id: String(item.id || id),
@@ -29,9 +29,45 @@
                 return item.name && Number.isFinite(item.price) && item.price > 0
                     && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 20;
             });
-        } catch (error) {
-            $scope.error = "Your saved cart could not be read. Clear the invalid cart data or add items again.";
         }
+
+        ConferenceCartApi.load().done(function (result) {
+            $scope.$applyAsync(function () {
+                $scope.cartItems = result.cart.items.map(function (item) {
+                    return {
+                        id: item.productId,
+                        name: item.name,
+                        price: Number(item.price),
+                        quantity: Number(item.quantity)
+                    };
+                });
+                ConferenceCartApi.cache(result.cart.items);
+                $scope.cartLoading = false;
+            });
+        }).fail(function (response) {
+            const localCart = ConferenceCartApi.readLocal();
+            if (response.status === 404 && Object.keys(localCart).length > 0) {
+                $scope.$applyAsync(function () {
+                    $scope.cartItems = localCartItems(localCart);
+                });
+                ConferenceCartApi.save(localCart).always(function () {
+                    $scope.$applyAsync(function () { $scope.cartLoading = false; });
+                }).fail(function () {
+                    $scope.$applyAsync(function () {
+                        $scope.error = "The saved cart could not be migrated to the database.";
+                    });
+                });
+                return;
+            }
+            $scope.$applyAsync(function () {
+                $scope.cartLoading = false;
+                if (response.status !== 404) {
+                    $scope.error = response.responseJSON && response.responseJSON.error
+                        ? response.responseJSON.error
+                        : "The cart could not be loaded from the database.";
+                }
+            });
+        });
 
         $scope.subtotal = function () {
             return $scope.cartItems.reduce(function (sum, item) { return sum + item.price * item.quantity; }, 0);
@@ -90,6 +126,10 @@
         $scope.submit = function (form) {
             $scope.error = "";
             $scope.confirmation = "";
+            if ($scope.cartLoading) {
+                $scope.error = "Wait for the database cart to finish loading.";
+                return;
+            }
             if (!form.$valid) {
                 $scope.error = "Complete all required billing fields using a valid email address.";
                 return;
@@ -113,6 +153,7 @@
 
             const digits = String($scope.card.number).replace(/\D/g, "");
             const payload = {
+                cartId: ConferenceCartApi.getId(),
                 name: $scope.details.name.trim(),
                 email: $scope.details.email.trim(),
                 address: angular.copy($scope.details.address),
@@ -134,7 +175,7 @@
                     + response.data.order.total.toLocaleString("en-US", { style: "currency", currency: "USD" })
                     + ". No payment was charged.";
                 $scope.cartItems = [];
-                localStorage.removeItem("cyberSecSummitCart");
+                ConferenceCartApi.forget();
             }).catch(function (response) {
                 $scope.error = response.data && response.data.error
                     ? response.data.error

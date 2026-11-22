@@ -27,13 +27,13 @@
             <h1 class="display-5 fw-bold">Product returns</h1>
             <p class="lead mb-0">Find an item in the store catalog and tell us why it needs to be returned.</p>
         </header>
-        <div class="alert alert-warning" role="note">Course demo: return requests are recorded in a local JSON file. This form does not create a shipping label or issue a refund.</div>
+        <div class="alert alert-warning" role="note">Course demo: return requests are saved in MongoDB. This form does not create a shipping label or issue a refund.</div>
         <div class="row g-4">
             <section class="col-lg-7" aria-labelledby="catalogHeading">
                 <div class="card billing-card">
                     <div class="card-body p-4">
                         <h2 id="catalogHeading" class="h4">Find a product</h2>
-                        <label for="returnProductSearch" class="form-label">Search the product JSON by name, ID, category, or description</label>
+                        <label for="returnProductSearch" class="form-label">Search the conference database by name, ID, category, or description</label>
                         <input id="returnProductSearch" type="search" class="form-control" placeholder="Search products…">
                         <div class="alert alert-info mt-3" ng-if="loading">Loading products…</div>
                         <div class="alert alert-danger mt-3" ng-if="error" role="alert">{{error}}</div>
@@ -93,7 +93,7 @@
             </section>
         </div>
         <section class="mt-5" ng-if="savedReturns.length" aria-labelledby="returnHistoryHeading">
-            <h2 id="returnHistoryHeading" class="h4 mb-3">Requests submitted this visit</h2>
+            <h2 id="returnHistoryHeading" class="h4 mb-3">Saved return requests</h2>
             <div class="row g-3">
                 <article class="col-md-6" ng-repeat="item in savedReturns track by item.id">
                     <div class="proposal-card p-3 d-flex gap-3 align-items-center">
