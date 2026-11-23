@@ -1,4 +1,4 @@
-/* React-managed registration form with jQuery session loading, filtering, and AJAX. */
+/* React-managed registration form backed by the conference API. */
 (function () {
     "use strict";
 
@@ -19,20 +19,16 @@
 
         if (String(config.endpoint || "").trim()) {
             banner.className = "alert alert-info mock-banner";
-            banner.textContent = "Live API mode: registration details will be sent to the configured REST endpoint. The confirmation appears only after the API responds successfully.";
-        } else if (config.demoMode !== true) {
-            banner.className = "alert alert-danger mock-banner";
-            banner.textContent = "Registration unavailable: no REST endpoint is configured and demonstration mode is disabled.";
+            banner.textContent = "Live database mode: registrations are saved after the conference API accepts them.";
         } else {
-            banner.className = "alert alert-warning mock-banner";
-            banner.textContent = "Demonstration mode: No registration server is configured. Submitting this form shows a clearly labeled local demo confirmation; it does not send or save a real registration.";
+            banner.className = "alert alert-danger mock-banner";
+            banner.textContent = "Registration unavailable: no registration API endpoint is configured.";
         }
     }
 
-    // Convert the repository's existing session JSON fields into consistent option data.
     function normalizeSessions(data) {
         if (!data || !Array.isArray(data.sessions)) {
-            throw new Error("The sessions.json file does not contain a sessions list.");
+            throw new Error("The database did not return a session list.");
         }
 
         return data.sessions.map(function (session) {
@@ -43,39 +39,28 @@
             const details = String(session.additionalInfo || session.details || "").trim();
 
             if (!id || !title) {
-                throw new Error("A session in sessions.json is missing its ID or title.");
+                throw new Error("A database session is missing its ID or title.");
             }
 
             return { id: id, title: title, track: track, format: format, details: details };
         });
     }
 
-    // Keep service transport in one place so a configured REST endpoint can replace the demo.
     function sendRegistration(payload) {
         const endpoint = String(config.endpoint || "").trim();
 
-        if (endpoint) {
-            return $.ajax({
-                url: endpoint,
-                method: "POST",
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                data: JSON.stringify(payload)
-            }).then(function (response) {
-                return { mode: "api", response: response };
-            });
-        }
-
-        if (config.demoMode !== true) {
+        if (!endpoint) {
             return $.Deferred().reject(new Error("No registration API endpoint is configured."));
         }
-
-        // This is only an asynchronous UI demonstration, not a network request or saved record.
-        return $.Deferred(function (deferred) {
-            window.setTimeout(function () {
-                deferred.resolve({ mode: "mock" });
-            }, Number(config.mockDelayMs) || 500);
-        }).promise();
+        return $.ajax({
+            url: endpoint,
+            method: "POST",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(payload)
+        }).then(function (response) {
+            return { mode: "api", response: response };
+        });
     }
 
     class FinalizationApp extends React.Component {
@@ -109,8 +94,7 @@
         componentDidMount() {
             const self = this;
 
-            // jQuery loads the existing JSON file asynchronously and reports file/data errors.
-            $.getJSON("sessions.json")
+            $.getJSON("/api/sessions")
                 .done(function (data) {
                     try {
                         const sessions = normalizeSessions(data);
@@ -125,7 +109,7 @@
                 })
                 .fail(function () {
                     self.setState({
-                        sessionsError: "Session options could not be loaded. Run this site through a local web server and check sessions.json.",
+                        sessionsError: "Sessions could not be loaded from the database. Check MongoDB and reload the page.",
                         sessionsLoading: false
                     });
                 });
@@ -247,7 +231,7 @@
                 .fail((xhr, status, error) => {
                     const message = error instanceof Error
                         ? error.message
-                        : (xhr && xhr.responseJSON && xhr.responseJSON.message) ||
+                        : (xhr && xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.message)) ||
                           (status === "timeout" ? "The registration request timed out." : "The registration API request failed. Check the endpoint and try again.");
                     this.setState({ submissionError: message, submitting: false });
                 });
@@ -322,13 +306,10 @@
                 return null;
             }
 
-            const isMock = this.state.confirmation.mode === "mock";
             const selected = this.state.jsonPayload.selectedSessions;
             return h("section", { className: "alert alert-success confirmation-card mt-4", role: "status", "aria-labelledby": "confirmationHeading" },
                 h("h2", { id: "confirmationHeading", className: "h4" }, "Registration confirmation"),
-                h("p", null, isMock
-                    ? "Demo completed: no API request was sent and no registration was saved."
-                    : "Your registration was accepted by the configured registration API."),
+                h("p", null, "Your registration was saved in the conference database."),
                 h("dl", { className: "row mb-0" },
                     h("dt", { className: "col-sm-3" }, "Attendee"),
                     h("dd", { className: "col-sm-9" }, this.state.jsonPayload.fullName),

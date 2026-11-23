@@ -34,6 +34,15 @@
             $scope.loading = false;
         });
 
+        $http.get("/api/returns").then(function (response) {
+            if (!response.data || !Array.isArray(response.data.returns)) {
+                throw new Error("The return history response is invalid.");
+            }
+            $scope.savedReturns = response.data.returns;
+        }).catch(function () {
+            $scope.error = "Saved return requests could not be loaded from the database.";
+        });
+
         $("#returnProductSearch").on("input", function () {
             const searchTerm = $(this).val();
             $scope.$applyAsync(function () {
